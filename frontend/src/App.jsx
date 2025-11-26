@@ -3,7 +3,7 @@ import Sidebar from './components/Sidebar';
 import ChatArea from './components/ChatArea';
 import { Menu } from 'lucide-react';
 
-const USE_MOCK_API = true;
+const USE_MOCK_API = false;
 
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
