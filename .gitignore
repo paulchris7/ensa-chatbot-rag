@@ -1,0 +1,84 @@
+# ==========================
+#  GLOBAL / SYSTEME
+# ==========================
+.DS_Store
+Thumbs.db
+*.log
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+#  SECURITE (Cles API)
+# Ignore tous les fichiers .env partout (frontend et backend)
+.env
+.env.local
+.env.*.local
+.venv
+env/
+venv/
+ENV/
+
+# ==========================
+# IDE & EDITEURS
+# ==========================
+.vscode/
+!.vscode/extensions.json
+.idea/
+.cursorignore
+.cursorindexingignore
+
+# ==========================
+# FRONTEND (Node/React)
+# ==========================
+node_modules/
+dist/
+dist-ssr/
+coverage/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+*.local
+
+# ==========================
+# BACKEND (Python/Flask)
+# ==========================
+# Byte-compiled / optimized
+__pycache__/
+*.py[codz]
+*$py.class
+
+# Flask & Web
+instance/
+.webassets-cache
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+
+# Python Distribution / Packaging
+build/
+develop-eggs/
+eggs/
+lib/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Types & Cache
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Base de données locales
+*.sqlite3
+db.sqlite3
