@@ -1,28 +1,36 @@
 import React, { useEffect, useRef } from 'react';
+
 import MessageBubble from './MessageBubble';
 import InputZone from './InputZone';
+
 import { Bot, User, LoaderCircle, CalendarDays, BookText, Milestone } from 'lucide-react';
 import ensaLogo from '../assets/ensa-logo.png';
 
-const WelcomeScreen = ({ onPromptClick }) => {
-  const prompts = [
-    { 
-      icon: <CalendarDays size={20} className="mr-2" />, 
-      displayText: "Calendrier des examens",
-      fullText: "J'aimerais consulter le calendrier des examens pour ce semestre." 
-    },
-    { 
-      icon: <BookText size={20} className="mr-2" />,
-      displayText: "Règlement intérieur",
-      fullText: "Quels sont les points clés du règlement intérieur ?"
-    },
-    { 
-      icon: <Milestone size={20} className="mr-2" />,
-      displayText: "Clubs parascolaires",
-      fullText: "Quels sont les clubs parascolaires actifs à l'ENSA ?"
-    },
-  ];
+// Static array of prompt starters for the welcome screen.
+const promptStarters = [
+  { 
+    icon: <CalendarDays size={20} className="mr-2" />, 
+    displayText: "Calendrier des examens",
+    fullText: "J'aimerais consulter le calendrier des examens pour ce semestre." 
+  },
+  { 
+    icon: <BookText size={20} className="mr-2" />,
+    displayText: "Règlement intérieur",
+    fullText: "Quels sont les points clés du règlement intérieur ?"
+  },
+  { 
+    icon: <Milestone size={20} className="mr-2" />,
+    displayText: "Clubs parascolaires",
+    fullText: "Quels sont les clubs parascolaires actifs à l'ENSA ?"
+  },
+];
 
+/**
+ * Displays the initial welcome screen when no conversation is active.
+ * @param {object} props - The component props.
+ * @param {(promptText: string) => void} props.onPromptClick - Callback to send a prompt starter as a new message.
+ */
+const WelcomeScreen = ({ onPromptClick }) => {
   return (
     <div className="flex-1 flex flex-col items-center justify-center text-center p-8 animate-fade-in">
       <img src={ensaLogo} alt="ENSA Marrakech Logo" className="w-32 h-32 mb-6 opacity-90" />
@@ -32,9 +40,8 @@ const WelcomeScreen = ({ onPromptClick }) => {
       <p className="text-slate-600 dark:text-slate-300 mb-10 max-w-md">
         Je peux répondre à vos questions sur la scolarité, les règlements et les emplois du temps.
       </p>
-
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-2xl">
-        {prompts.map((prompt, index) => (
+        {promptStarters.map((prompt, index) => (
           <div
             key={index}
             onClick={() => onPromptClick(prompt.fullText)}
@@ -49,9 +56,19 @@ const WelcomeScreen = ({ onPromptClick }) => {
   );
 };
 
+/**
+ * Renders the main chat interface, including messages and the input zone.
+ * It displays a welcome screen if no conversation is active.
+ * @param {object} props - The component props.
+ * @param {object|null} props.activeConversation - The currently active conversation object.
+ * @param {Array<object>} props.messages - The list of messages in the active conversation.
+ * @param {boolean} props.isLoading - Flag indicating if a response is being fetched.
+ * @param {(text: string) => void} props.onSendMessage - Callback function to handle sending a message.
+ */
 const ChatArea = ({ activeConversation, messages, isLoading, onSendMessage }) => {
   const messagesEndRef = useRef(null);
 
+  // Automatically scrolls to the latest message.
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -60,12 +77,11 @@ const ChatArea = ({ activeConversation, messages, isLoading, onSendMessage }) =>
     scrollToBottom();
   }, [messages]);
 
-  // Le Welcome Screen est montré si aucune conversation n'est active.
   const showWelcomeScreen = !activeConversation;
 
   return (
     <main className="flex-1 flex flex-col h-screen bg-transparent">
-      {/* Header: s'affiche seulement si une conversation est active */}
+      {/* Header is displayed only when a conversation is active. */}
       {activeConversation && (
         <header className="relative bg-white/60 dark:bg-black/40 backdrop-blur-md shadow-md p-4 flex items-center justify-center z-10">
           <h1 className="text-xl font-semibold text-slate-800 dark:text-slate-100 truncate">
@@ -74,7 +90,7 @@ const ChatArea = ({ activeConversation, messages, isLoading, onSendMessage }) =>
         </header>
       )}
 
-      {/* Conditional Content: Welcome Screen or Messages */}
+      {/* Renders either the Welcome Screen or the list of messages. */}
       <div className="flex-1 overflow-y-auto p-6 flex flex-col">
         {showWelcomeScreen && !isLoading ? (
           <WelcomeScreen onPromptClick={onSendMessage} />
@@ -97,7 +113,6 @@ const ChatArea = ({ activeConversation, messages, isLoading, onSendMessage }) =>
         )}
       </div>
 
-      {/* Input Zone wrapper is now transparent */}
       <div className="p-6">
         <InputZone onSendMessage={onSendMessage} isLoading={isLoading} />
       </div>

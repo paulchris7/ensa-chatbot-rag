@@ -1,10 +1,22 @@
 import React, { useState } from 'react';
+
 import { useTypewriter } from '../hooks/useTypewriter';
+
 import { Bot, User, Copy, Check } from 'lucide-react';
 
+/**
+ * Renders a single message bubble in the chat area.
+ * It handles different styles for user and AI messages, applies a typewriter effect
+ * for AI responses, and includes a copy-to-clipboard functionality.
+ * @param {object} props - The component props.
+ * @param {object} props.msg - The message object containing text, sender, and animation flag.
+ * @param {React.ReactNode} props.avatar - The avatar element to display next to the message.
+ */
 const MessageBubble = ({ msg, avatar }) => {
   const { text, sender, shouldAnimate } = msg;
   const isUser = sender === 'user';
+  
+  // Apply typewriter effect only to non-user messages.
   const displayedText = isUser ? text : useTypewriter(text, 20);
 
   const [isCopied, setIsCopied] = useState(false);
@@ -15,6 +27,7 @@ const MessageBubble = ({ msg, avatar }) => {
     setTimeout(() => setIsCopied(false), 2000);
   };
 
+  // Split the message content to render code blocks separately.
   const parts = displayedText.split(/(```[\s\S]*?```)/g).filter(part => part);
 
   const bubbleAlignment = isUser ? 'justify-end' : 'justify-start';
@@ -22,13 +35,12 @@ const MessageBubble = ({ msg, avatar }) => {
     ? 'bg-ensa-accent/20 dark:bg-ensa-accent/30 border-ensa-accent/30 dark:border-ensa-accent/40 rounded-tr-lg'
     : 'bg-white/50 dark:bg-slate-500/20 border-slate-200/50 dark:border-slate-600/50 rounded-tl-lg';
 
+  // The outer container acts as a 'group' for CSS hover effects on child elements.
   return (
-    // Le conteneur entier est maintenant le groupe pour le survol
     <div className={`group w-full flex items-start gap-2 ${bubbleAlignment} ${shouldAnimate ? 'animate-fade-in-up' : ''}`}>
       
       {!isUser && <div className="w-8 h-8 flex-shrink-0">{avatar}</div>}
       
-      {/* La bulle de message elle-même */}
       <div className={`max-w-xl p-3.5 rounded-2xl shadow-md border backdrop-blur-sm ${bubbleStyles}`}>
         {parts.map((part, index) => {
           if (part.startsWith('```') && part.endsWith('```')) {
@@ -43,7 +55,7 @@ const MessageBubble = ({ msg, avatar }) => {
         })}
       </div>
 
-      {/* Bouton Copier (à l'extérieur de la bulle, pour l'IA uniquement) */}
+      {/* Copy button appears on hover for AI messages only. */}
       {!isUser && (
         <button
           onClick={handleCopy}

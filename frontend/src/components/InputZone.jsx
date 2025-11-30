@@ -1,6 +1,14 @@
 import { useState } from 'react';
+
 import { Send, ClipboardPaste, LoaderCircle } from 'lucide-react';
 
+/**
+ * Renders the text input area for sending messages.
+ * Includes functionality for typing, pasting from clipboard, and sending messages.
+ * @param {object} props - The component props.
+ * @param {(text: string) => void} props.onSendMessage - Callback function to send the message text.
+ * @param {boolean} props.isLoading - Flag to disable the input and show a loading indicator.
+ */
 const InputZone = ({ onSendMessage, isLoading }) => {
   const [inputValue, setInputValue] = useState('');
 
@@ -11,16 +19,21 @@ const InputZone = ({ onSendMessage, isLoading }) => {
     }
   };
 
+  /**
+   * Handles keydown events in the input field.
+   * Sends the message on 'Enter' unless 'Shift' is also pressed.
+   * @param {React.KeyboardEvent<HTMLInputElement>} event - The keyboard event.
+   */
   const handleKeyDown = (event) => {
-    // Action B (FIX) : La logique est correcte.
-    // "Enter" envoie, "Shift+Enter" va à la ligne (comportement par défaut).
     if (event.key === 'Enter' && !event.shiftKey) {
-      event.preventDefault();
+      event.preventDefault(); // Prevents default newline on Enter.
       handleSend();
     }
   };
 
-  // Action A : Bouton "Coller"
+  /**
+   * Pastes text from the user's clipboard into the input field.
+   */
   const handlePaste = async () => {
     try {
       const text = await navigator.clipboard.readText();

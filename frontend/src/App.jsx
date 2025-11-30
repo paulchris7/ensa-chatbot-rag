@@ -1,19 +1,28 @@
 import { useState, useEffect } from 'react';
+
 import Sidebar from './components/Sidebar';
 import ChatArea from './components/ChatArea';
+
 import { Menu } from 'lucide-react';
 
+// Configuration flag to toggle between mock and real API.
 const USE_MOCK_API = false;
 
+/**
+ * Main application component.
+ * Acts as the root of the application, managing global state such as conversations,
+ * loading status, and the active chat. It orchestrates the main layout,
+ * including the Sidebar for navigation and the ChatArea for interaction.
+ */
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [conversations, setConversations] = useState([]);
   const [activeId, setActiveId] = useState(null);
 
-  // FIX DÉFINITIF ANIMATION: Ce `useEffect` se déclenche après la sélection d'un nouveau chat.
-  // Il attend que l'animation se joue, puis met à jour le state pour que les messages
-  // ne se ré-animent plus la prochaine fois.
+  // This effect resets animation flags after a new message is displayed.
+  // It waits for CSS animations to complete, then updates the state to prevent
+  // messages from re-animating when switching between conversations.
   useEffect(() => {
     if (!activeId) return;
 
@@ -29,18 +38,16 @@ function App() {
           return convo;
         })
       );
-    }, 1000); // Délai supérieur à la durée de l'animation
+    }, 1000); // This delay should be longer than the message animation duration.
 
     return () => clearTimeout(timer);
-  }, [activeId, conversations]); // Déclenché quand on change de chat ou que la conv est mise à jour
+  }, [activeId, conversations]);
 
   const createNewChat = () => {
     setActiveId(null);
   };
 
   const handleSelectConversation = (id) => {
-    // La logique de nettoyage est maintenant dans le useEffect.
-    // On se contente de changer l'ID actif.
     if (id !== activeId) {
       setActiveId(id);
     }

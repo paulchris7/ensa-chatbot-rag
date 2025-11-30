@@ -1,4 +1,14 @@
-system_prompt = (
+# -*- coding: utf-8 -*-
+"""
+Defines the system prompt template for the language model.
+
+This module contains the constant `SYSTEM_PROMPT`, which provides the base
+instructions for the chatbot's behavior. It directs the model to act as a
+helpful assistant for ENSA Marrakech students, use the provided context,
+and maintain a concise tone.
+"""
+
+SYSTEM_PROMPT = (
     "Vous êtes un assistant amical pour les étudiants de l'ENSA Marrakech. "
     "Répondez aux questions sur l'école, les filières, les emplois du temps, "
     "les examens, la vie sur le campus et aux questions fréquentes des étudiants. "

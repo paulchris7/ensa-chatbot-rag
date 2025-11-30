@@ -1,94 +1,117 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
-from src.helper import download_hugging_face_embeddings
-from langchain_pinecone import PineconeVectorStore
-from langchain.chains import create_retrieval_chain
-from langchain.chains.combine_documents import create_stuff_documents_chain
-from langchain_core.prompts import ChatPromptTemplate
-from dotenv import load_dotenv
-from langchain_community.llms import Ollama
-from src.prompt import *
+# -*- coding: utf-8 -*-
+"""
+Flask backend for a RAG-based chatbot.
+
+This module sets up and runs a Flask web server that exposes a single '/chat'
+API endpoint. It initializes all necessary components for a Retrieval-Augmented
+Generation (RAG) pipeline on startup, including language model embeddings,
+a Pinecone vector store, and the final processing chain.
+"""
+
+# 1. Standard Library Imports
 import os
 
-# --- 1. CONFIGURATION INITIALE (Se lance une seule fois au démarrage) ---
+# 2. Third-Party Library Imports
+from dotenv import load_dotenv
+from flask import Flask, jsonify, request
+from flask_cors import CORS
+from langchain.chains import create_retrieval_chain
+from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain_community.llms import Ollama
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_pinecone import PineconeVectorStore
+
+# 3. Local Application Imports
+from src.helper import download_hugging_face_embeddings
+from src.prompt import SYSTEM_PROMPT
+
+# --- Application Initialization ---
+
 app = Flask(__name__)
-CORS(app) # Autorise ton Frontend React à parler à ce serveur
+CORS(app)  # Enable Cross-Origin Resource Sharing
+
+# --- Environment & API Key Configuration ---
 
 load_dotenv()
-
-# Vérification de la clé API
-PINECONE_API_KEY = os.environ.get('PINECONE_API_KEY')
+PINECONE_API_KEY = os.environ.get("PINECONE_API_KEY")
 if not PINECONE_API_KEY:
-    print("Erreur : PINECONE_API_KEY non trouvée dans le fichier .env")
-os.environ["PINECONE_API_KEY"] = PINECONE_API_KEY
+    raise ValueError("PINECONE_API_KEY not found in environment variables.")
 
-print("Chargement des Embeddings HuggingFace...")
+# --- RAG Pipeline Configuration ---
+
+# Load embeddings model
 embeddings = download_hugging_face_embeddings()
 
-index_name = "ensa-chatbot" 
-
-# Connexion à Pinecone
-print("Connexion à l'index Pinecone...")
+# Connect to the existing Pinecone index
+index_name = "ensa-chatbot"
 docsearch = PineconeVectorStore.from_existing_index(
     index_name=index_name,
     embedding=embeddings
 )
 
-retriever = docsearch.as_retriever(search_type="similarity", search_kwargs={"k":3})
+# Configure the retriever
+retriever = docsearch.as_retriever(
+    search_type="similarity",
+    search_kwargs={"k": 3}
+)
 
-# Initialisation du LLM Local (gemma:2b)
-print("Initialisation du modèle Ollama (gemma:2b)...")
-chatModel = Ollama(model="gemma:2b")
+# Initialize the local LLM
+chat_model = Ollama(model="gemma:2b")
 
+# Create the prompt template
 prompt = ChatPromptTemplate.from_messages(
     [
-        ("system", system_prompt),
+        ("system", SYSTEM_PROMPT),
         ("human", "{input}"),
     ]
 )
 
-question_answer_chain = create_stuff_documents_chain(chatModel, prompt)
+# Build the RAG chain
+question_answer_chain = create_stuff_documents_chain(chat_model, prompt)
 rag_chain = create_retrieval_chain(retriever, question_answer_chain)
 
-print("✅ Serveur prêt ! En attente de requêtes...")
+print("Server is ready and waiting for requests...")
 
 
-# --- 2. DÉFINITION DE LA ROUTE API (Ce que ton React appelle) ---
+# --- API Endpoint Definition ---
+
 @app.route('/chat', methods=['POST'])
 def chat():
+    """
+    Handles chat requests from the frontend.
+
+    Receives a JSON payload with a 'query', processes it through the RAG
+    pipeline, and returns the generated answer.
+
+    Returns:
+        A JSON response containing the answer or an error message.
+    """
     try:
-        # Récupérer la question envoyée par le React
         data = request.json
         user_query = data.get('query')
-        
+
         if not user_query:
-            return jsonify({"error": "Aucune question fournie"}), 400
+            return jsonify({"error": "No query provided"}), 400
 
-        print(f"📩 Question reçue : {user_query}")
+        print(f"Received query: {user_query}")
 
-        # Lancer la chaîne RAG (Recherche + Génération)
+        # Process the query using the RAG chain
         response = rag_chain.invoke({"input": user_query})
-        
-        # Récupérer la réponse texte
-        answer_text = response["answer"]
-        
-        # (Optionnel) Récupérer les sources utilisées pour répondre
-        # sources = [doc.metadata.get('source', 'Inconnu') for doc in response.get("context", [])]
+        answer_text = response.get("answer", "No answer could be generated.")
 
-        print("📤 Réponse envoyée.")
-        
-        # Renvoyer le JSON au React
-        return jsonify({
-            "answer": answer_text,
-            # "sources": sources # Tu pourras décommenter ça plus tard si tu veux afficher les sources
-        })
+        print("Sending response.")
+
+        return jsonify({"answer": answer_text})
 
     except Exception as e:
-        print(f"❌ Erreur : {e}")
-        return jsonify({"answer": "Désolé, une erreur technique est survenue sur le serveur."}), 500
+        print(f"Server Error: {e}")
+        return jsonify({
+            "answer": "An internal server error occurred."
+        }), 500
 
 
-# --- 3. LANCEMENT DU SERVEUR ---
+# --- Server Execution ---
+
 if __name__ == '__main__':
-    # host='0.0.0.0' permet l'accès depuis d'autres appareils (mobile) sur le même wifi
+    # Binds to 0.0.0.0 to allow access from other devices on the network
     app.run(host='0.0.0.0', port=5000, debug=True)
