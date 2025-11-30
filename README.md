@@ -39,7 +39,7 @@ Ce projet est structuré en **Monorepo** :
 ---
 
 ## Structure du Projet
-ensa-chatbot-rag/
+ensa-chatbot-final/
 ├── backend/                # API Flask & Logique IA
 │   ├── data/               # Documents sources (PDF/TXT)
 │   ├── src/                # Scripts auxiliaires (Prompts, Helpers)
