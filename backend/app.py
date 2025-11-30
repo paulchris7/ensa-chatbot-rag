@@ -36,9 +36,9 @@ docsearch = PineconeVectorStore.from_existing_index(
 
 retriever = docsearch.as_retriever(search_type="similarity", search_kwargs={"k":3})
 
-# Initialisation du LLM Local (Ollama)
-print("Initialisation du modèle Ollama (phi3)...")
-chatModel = Ollama(model="phi3")
+# Initialisation du LLM Local (gemma:2b)
+print("Initialisation du modèle Ollama (gemma:2b)...")
+chatModel = Ollama(model="gemma:2b")
 
 prompt = ChatPromptTemplate.from_messages(
     [
